@@ -80,7 +80,7 @@ namespace GithubPatcher
                 RecursiveTree(path, GitHubURL, GitHubShaTree);
             }
 
-            File.WriteAllText(args[3] + "\\ShaTree.JSON", JsonConvert.SerializeObject(GitHubShaTree));
+            File.WriteAllText(path + "\\ShaTree.JSON", JsonConvert.SerializeObject(GitHubShaTree));
             InnerSpace.Echo(String.Format("{0} {1} {2} Updated in directory {3}", args[0], args[1], args[2], args[3]));
             if (args.Length == 5)
             {
