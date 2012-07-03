@@ -34,9 +34,16 @@ namespace GithubPatcher
                 return;
             }
 
-            if (File.Exists(args[3] + "\\ShaTree.JSON"))
+            String path = args[3];
+
+            if (!Path.IsPathRooted(args[3]))
             {
-                GitHubShaTree = JsonConvert.DeserializeObject<ShaTree>(File.ReadAllText(args[3] + "\\ShaTree.JSON"));
+                path = InnerSpace.Path + "\\" + path;
+            }
+
+            if (File.Exists(path + "\\ShaTree.JSON"))
+            {
+                GitHubShaTree = JsonConvert.DeserializeObject<ShaTree>(File.ReadAllText(path + "\\ShaTree.JSON"));
             }
             else
             {
@@ -70,7 +77,7 @@ namespace GithubPatcher
             if (GitHubShaTree.TreeSha != (String)GitHubJSON["tree"]["sha"])
             {
                 GitHubShaTree.TreeSha = (String)GitHubJSON["tree"]["sha"];
-                RecursiveTree(args[3], GitHubURL, GitHubShaTree);
+                RecursiveTree(path, GitHubURL, GitHubShaTree);
             }
 
             File.WriteAllText(args[3] + "\\ShaTree.JSON", JsonConvert.SerializeObject(GitHubShaTree));
