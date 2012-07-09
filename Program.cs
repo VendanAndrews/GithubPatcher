@@ -182,7 +182,7 @@ namespace GithubPatcher
                 {
                     File.Delete(name);
                 }
-                catch (IOException e)
+                catch (UnauthorizedAccessException e)
                 {
                     if (File.Exists(name + ".old"))
                     {
