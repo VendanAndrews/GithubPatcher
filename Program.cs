@@ -74,7 +74,7 @@ namespace GithubPatcher
             InnerSpace.Echo(String.Format("Updating {0} {1} {2} in directory {3}", args[0], args[1], args[2], args[3]));
 
             GitHubClient.Headers.Add("Accept: application/vnd.github.v3+json");
-            GitHubData = GitHubClient.DownloadString(String.Format("https://api.github.com/repos/{0}/{1}/git/refs/heads/{2}", args[0], args[1], args[2]));
+            GitHubData = GitHubClient.DownloadString(String.Format("https://api.github.com/repos/{0}/{1}/git/refs/heads/{2}", args[0], args[1], repo));
 
             GitHubJSON = JObject.Parse(GitHubData);
 
