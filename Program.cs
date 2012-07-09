@@ -35,6 +35,8 @@ namespace GithubPatcher
             }
 
             String path = args[3];
+            String repo = args[2];
+            Queue<String> repoPaths;
 
             if (!Path.IsPathRooted(args[3]))
             {
@@ -50,6 +52,16 @@ namespace GithubPatcher
                 GitHubShaTree = new ShaTree();
             }
 
+            if (repo.IndexOf('/') > 0)
+            {
+                repoPaths = new Queue<string>(repo.Split(new char[] { '/' }));
+                repo = repoPaths.Dequeue();
+            }
+            else
+            {
+                repoPaths = new Queue<string>();
+            }
+
             GitHubClient = new WebClient();
 
             GitHubClientFiles = new WebClient();
@@ -57,6 +69,7 @@ namespace GithubPatcher
             String GitHubData;
             JObject GitHubJSON;
             String GitHubURL;
+            String GitHubSha;
 
             InnerSpace.Echo(String.Format("Updating {0} {1} {2} in directory {3}", args[0], args[1], args[2], args[3]));
 
@@ -73,10 +86,40 @@ namespace GithubPatcher
             GitHubJSON = JObject.Parse(GitHubData);
 
             GitHubURL = (String)GitHubJSON["tree"]["url"];
+            GitHubSha = (String)GitHubJSON["tree"]["sha"];
 
-            if (GitHubShaTree.TreeSha != (String)GitHubJSON["tree"]["sha"])
+            foreach (String repoPath in repoPaths)
             {
-                GitHubShaTree.TreeSha = (String)GitHubJSON["tree"]["sha"];
+                GitHubClient.Headers.Add("Accept: application/vnd.github.v3+json");
+                GitHubData = GitHubClient.DownloadString(GitHubURL);
+                GitHubJSON = JObject.Parse(GitHubData);
+                foreach (JToken file in GitHubJSON["tree"])
+                {
+                    if ((String)file["path"] == repoPath)
+                    {
+                        if ((String)file["type"] == "tree")
+                        {
+                            GitHubURL = (String)file["url"];
+                            GitHubSha = (String)file["sha"];
+                        }
+                        else
+                        {
+                            if (GitHubShaTree.TreeSha != (String)file["sha"])
+                            {
+                                UpdateFile(path + "\\" + (String)file["path"], (String)file["url"]);
+                                InnerSpace.Echo((String)file["path"] + " Downloaded");
+                                GitHubShaTree.TreeSha = (String)file["sha"];
+                            }
+                            GitHubSha = GitHubShaTree.TreeSha;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (GitHubShaTree.TreeSha != GitHubSha)
+            {
+                GitHubShaTree.TreeSha = GitHubSha;
                 RecursiveTree(path, GitHubURL, GitHubShaTree);
             }
 
@@ -123,13 +166,33 @@ namespace GithubPatcher
                         if (ThisShaTree.FileShas[(String)file["path"]] != (String)file["sha"])
                         {
                             ThisShaTree.FileShas[(String)file["path"]] = (String)file["sha"];
-                            GitHubClientFiles.Headers.Add("Accept: application/vnd.github.v3.raw");
-                            GitHubClientFiles.DownloadFile((String)file["url"], path + "\\" + (String)file["path"]);
+                            UpdateFile(path + "\\" + (String)file["path"], (String)file["url"]);
                             InnerSpace.Echo((String)file["path"] + " Downloaded");
                         }
                     }
                 }
             }
+        }
+
+        static void UpdateFile(String name, String url)
+        {
+            if (File.Exists(name))
+            {
+                try
+                {
+                    File.Delete(name);
+                }
+                catch (IOException e)
+                {
+                    if (File.Exists(name + ".old"))
+                    {
+                        File.Delete(name + ".old");
+                    }
+                    File.Move(name, name + ".old");
+                }
+            }
+            GitHubClientFiles.Headers.Add("Accept: application/vnd.github.v3.raw");
+            GitHubClientFiles.DownloadFile(url, name);
         }
     }
 
