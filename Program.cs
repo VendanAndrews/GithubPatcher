@@ -128,7 +128,7 @@ namespace GithubPatcher
             InnerSpace.Echo(String.Format("{0} {1} {2} Updated in directory {3}", args[0], args[1], args[2], args[3]));
             if (args.Length == 5)
             {
-                LavishScript.Events.ExecuteEvent(args[4], new string[]{Updated.ToString()});
+                LavishScript.Events.ExecuteEvent(args[4], new string[]{Updated.ToString().ToUpper()});
             }
         }
 
