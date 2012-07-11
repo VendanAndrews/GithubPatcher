@@ -21,6 +21,7 @@ namespace GithubPatcher
         static WebClient GitHubClient;
         static WebClient GitHubClientFiles;
         static ShaTree GitHubShaTree;
+        static Boolean Updated = false;
 
         public static void Main(string[] args)
         {
@@ -127,7 +128,7 @@ namespace GithubPatcher
             InnerSpace.Echo(String.Format("{0} {1} {2} Updated in directory {3}", args[0], args[1], args[2], args[3]));
             if (args.Length == 5)
             {
-                LavishScript.Events.ExecuteEvent(args[4]);
+                LavishScript.Events.ExecuteEvent(args[4], new string[]{Updated.ToString()});
             }
         }
 
@@ -193,6 +194,7 @@ namespace GithubPatcher
             }
             GitHubClientFiles.Headers.Add("Accept: application/vnd.github.v3.raw");
             GitHubClientFiles.DownloadFile(url, name);
+            Updated = true;
         }
     }
 
